@@ -1,0 +1,200 @@
+----------------------------------------------------------------------------------------------------
+3rd try:
+Extract Features: ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, and T_amplitude).
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy
+==> 154 Features in total
+Impute Missing Values: Fill using median.
+Normalize: Standard scaler.
+Model: Histogram Gradient Boosting for prediction.
+----------------------------------------------------------------------------------------------------
+4th try 
+(Public score: 0.8225, Val: 0.8418, Cross-Val: 0.828)
+Extract Features: ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, and T_amplitude).
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 154 Features in total
+Impute Missing Values: Fill using median (327 filled in training set, 279 filled in test set).
+Normalize: Standard scaler.
+Model: Histogram Gradient Boosting.
+----------------------------------------------------------------------------------------------------
+5th try
+(Public score: 0.82134, Val: 0.8320, Cross-Val: 0.9638)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, and T_amplitude).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 188 Features in total
+No imputation (HistGradientBoostingClassifier can hanlde NaNs)
+No standardization (HistGradientBoostingClassifier is invariant to scaling)
+Random Oversampling
+Model: HistGradientBoostingClassifier
+NOTE: Perhaps overfitting
+----------------------------------------------------------------------------------------------------
+6th try
+(Public score: 0.82540, Val: 0.83, Cross-Val: 0.9642)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, and T_amplitude).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 188 Features in total
+Random Oversampling
+Imputer (mean), standardization
+Model: StackingClassifier (HGB, LR, SVC) with final LR
+----------------------------------------------------------------------------------------------------
+7th try
+(Public score: 0.81902, Val: 0.8418, Cross-Val: 0.9646)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, and T_amplitude).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 188 Features in total
+Random Oversampling
+Imputer (mean), standardization
+Model: StackingClassifier (HGB, SVC) with final LR
+NOTES:
+    - Why is CV score so much higher compared to validation score? ==> Answer: Oversampling caused data leakage! Now we oversample each fold individually.
+    - Validation Evaluation (10% split): Very good performance on individual classes, i.e., F1-scores of (Class 0: 0.8934,  Class 1: 0.8095, Class 2: 0.7353, Class 3: 0.8000).
+----------------------------------------------------------------------------------------------------
+8th try
+(Public score: 0.79756, Val: 0.8262, Cross-Val: 0.8151)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+Improvement: We use the "nan" functions, so NaNs will be ignored in compuation of mean, std, etc.
+==> 218 Features in total
+Imputer (mean), standardization, Feature Selection (100 features, using mututal information) 
+Move Oversampler into pipeline, so we oversample each fold seperately (should reduce the high CV-score we observed before)
+Use SMOT oversampler (should perform better, as we create synthetic)
+Use StratifiedKFold instead of "normal" KFold to maintain Class distribution
+Model: HistGradientBoostingClassifier
+----------------------------------------------------------------------------------------------------
+9th try
+(Public score: 0.82192, Val: , Cross-Val: 0.8204)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (knn), MinMaxScaler (feature range [-1,1])
+RandomOverSampler (performs better than SMOT)
+Model: XGBClassifier (n_estimators=1000)
+----------------------------------------------------------------------------------------------------
+10th try
+NOTE: Similar to 5th try, but with a linear SVC kernel
+(Public score: 0.80684, Val: 0.8164, Cross-Val: 0.7953)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (mean), RobustScaler
+RandomOverSampler
+Model: StackingClassifier (HGB, RF, SVC) with final LR
+
+VALIDATION SET (10% split):
+Cross-Validation Score (5 splits): 0.8206
+Class 0: 0.8857
+Class 1: 0.8046
+Class 2: 0.7206
+Class 3: 0.6857
+Overall: 0.8281
+----------------------------------------------------------------------------------------------------
+11th try        (similar to 6th try)
+NOTE: We also increased accuracy to float64 (instead of float32)
+NOTE: We have linear kernel instead of RBF for SVC (differs from 6th try)
+(Public score: 0.81438, Val: 0.8193, Cross-Val: 0.8179)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (mean), StandardScaler
+RandomOverSampler
+Model: StackingClassifier (HGB, LR, SVC) with final LR
+
+VALIDATION SET (10% split):
+Cross-Validation Score (5 splits): 0.8193
+Class 0: 0.8924
+Class 1: 0.8182
+Class 2: 0.7206
+Class 3: 0.7500
+Overall: 0.8316
+
+NOTE: Actually worse than 6th try (the increased number of features actually decraded the performance)!
+----------------------------------------------------------------------------------------------------
+12th try
+(Public score: 0.81844, Val: 0.8438, Cross-Val: --)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (mean), StandardScaler
+RandomOverSampler
+Model: StackingClassifier (HGB, XGBClassifier, SVC with RBF) with final LR
+
+VALIDATION SET (10% split):
+Cross-Validation Score (5 splits): --
+Class 0: 0.8962
+Class 1: 0.8046
+Class 2: 0.7426
+Class 3: 0.7586
+Overall: 0.8438
+----------------------------------------------------------------------------------------------------
+13th try
+(Public score: 0.81786, Val: 0.8457, Cross-Val: --)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (most_frequent), StandardScaler
+RandomOverSampler
+Model: StackingClassifier (HGB, XGBClassifier, SVC with RBF) with final LR
+
+VALIDATION SET (10% split):
+Cross-Validation Score (5 splits): --
+Class 0: 0.8934
+Class 1: 0.8235
+Class 2: 0.7546
+Class 3: 0.7143
+Overall: 0.8457
+----------------------------------------------------------------------------------------------------
+14th try
+(Public score: 0.82424, Val: 0.8438, Cross-Val: --)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (mean), MinMaxScaler [-1, 1]
+RandomOverSampler
+Model: StackingClassifier (HGB, XGBClassifier, SVC with linear) with final LR
+
+VALIDATION SET (10% split):
+Cross-Validation Score (5 splits): --
+Class 0: 0.9036
+Class 1: 0.8046
+Class 2: 0.7306
+Class 3: 0.7273
+Overall: 0.8438
+----------------------------------------------------------------------------------------------------
+FINAL
+(Public score: 0.82540, Val: 0.8369, Cross-Val: --)
+Extract Features: 
+    - ECG features (RR_interval, heart_rate, PR_interval, QRS_duration, QT_interval, ST_segment, P_amplitude, Q_amplitude, R_amplitude, S_amplitude, T_amplitude, T_wave_duration, P_wave_duration).
+    - FFT, Wavelet and Autocorrelation features
+Compute Stats: mean, std, median, min, max, q25, q75, ptp, entropy, mad, iqr, var, skewness, kurtosis, energy.
+==> 218 Features in total
+Imputer (mean), MinMaxScaler [-1, 1]
+RandomOverSampler
+Model: StackingClassifier (HGB, XGBClassifier, SVC with Poly) with final LR
+
+VALIDATION SET (20% split):
+Cross-Validation Score (5 splits): --
+Class 0: 0.8937
+Class 1: 0.8457
+Class 2: 0.7154
+Class 3: 0.6562
+Overall: 0.8369
+----------------------------------------------------------------------------------------------------
