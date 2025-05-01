@@ -24,7 +24,7 @@ The ECG (electrocardiogram) signal records the electrical activity of the heart 
 - **QRS complex**: Ventricular depolarization
 - **T wave**: Ventricular repolarization
 
-![ECG Structure](images/heartbeat_template.png)
+![ECG Structure](heartbeat_template.png)
 
 These features help in identifying different heart conditions when extracted and analyzed properly.
 
@@ -41,7 +41,7 @@ We use the **`biosppy`** library to extract meaningful features from each signal
 - Signal shape and slopes
 - Time-domain and frequency-domain features
 
-![Segmented Signal](images/signal_segmented.png)
+![Segmented Signal](signal_segmented.png)
 
 ---
 
@@ -56,7 +56,7 @@ We train a classifier that predicts one of **four classes** based on the extract
 
 ### Example Data and Classification Output:
 
-![Classification Example](images/Example-data.png)
+![Classification Example](Example-data.png)
 
 ---
 
